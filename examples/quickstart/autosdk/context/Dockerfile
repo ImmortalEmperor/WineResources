@@ -52,9 +52,13 @@ RUN mv '/tmp/msvc-wine/downloaded/DIA SDK'       "$AUTOSDK_DIR/DIA SDK/$VISUAL_S
 
 # Query the LLVM version and move the files for LLVM into the AutoSDK structure
 # (Note that we create a copy of the LLVM files before running clang, in case any first-run logic modifies the on-disk files)
-RUN cp -R '/tmp/msvc-wine/downloaded/VC/Tools/Llvm' /tmp/llvm && \
+RUN if [ "$TARGETARCH" = 'arm64' ]; \
+		then LLVMARCH='ARM64'; \
+		else LLVMARCH='x64'; \
+	fi && \
+	cp -R "/tmp/msvc-wine/downloaded/VC/Tools/Llvm/$LLVMARCH" /tmp/llvm && \
 	LLVM_VERSION=`wine /tmp/llvm/bin/clang-cl.exe --version | grep 'clang version' | grep -o -E '[0-9\.]+'` && \
-	mv '/tmp/msvc-wine/downloaded/VC/Tools/Llvm' "$AUTOSDK_DIR/LLVM/$LLVM_VERSION"
+	mv "/tmp/msvc-wine/downloaded/VC/Tools/Llvm/$LLVMARCH" "$AUTOSDK_DIR/LLVM/$LLVM_VERSION"
 
 # Extract the files for the .NET Framework SDK (if required) and move them into the AutoSDK structure
 RUN if [ ! -z "$DOTNET_FRAMEWORK_SDK" ]; then \
