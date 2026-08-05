@@ -57,7 +57,7 @@ RUN if [ "$TARGETARCH" = 'arm64' ]; \
 		else LLVMARCH='x64'; \
 	fi && \
 	cp -R "/tmp/msvc-wine/downloaded/VC/Tools/Llvm/$LLVMARCH" /tmp/llvm && \
-	LLVM_VERSION=`wine /tmp/llvm/bin/clang-cl.exe --version | grep 'clang version' | grep -o -E '[0-9\.]+'` && \
+	LLVM_VERSION=`wine /tmp/llvm/bin/clang-cl.exe --version | grep 'clang version' | grep -oP '\d+(?:\.\d+)+'` && \
 	mv "/tmp/msvc-wine/downloaded/VC/Tools/Llvm/$LLVMARCH" "$AUTOSDK_DIR/LLVM/$LLVM_VERSION"
 
 # Extract the files for the .NET Framework SDK (if required) and move them into the AutoSDK structure
