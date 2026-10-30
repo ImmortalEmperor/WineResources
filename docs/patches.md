@@ -12,6 +12,7 @@ This page documents the custom patches that are applied when [building Wine for 
 - [Add the minidump API set to Wine's API set schema](#add-the-minidump-api-set-to-wines-api-set-schema)
 - [Selective smaps_rollup patch](#selective-smaps_rollup-patch)
 - [Memory patches to report cgroup usage and limit values inside containers and add support for overcommit prevention](#memory-patches-to-report-cgroup-usage-and-limit-values-inside-containers-and-add-support-for-overcommit-prevention)
+- [Expose external memory and semaphore fd extensions in winevulkan](#expose-external-memory-and-semaphore-fd-extensions-in-winevulkan)
 - [Historical Wine Patches](#historical-wine-patches)
     - [wineserver: Report non-zero exit code for abnormal process termination](#wineserver-report-non-zero-exit-code-for-abnormal-process-termination)
     - [Minidump backport patches](#minidump-backport-patches)
@@ -137,6 +138,17 @@ This combined patchset addresses two issues:
 - Unreal Engine includes functionality for detecting Out Of Memory (OOM) conditions under Windows and reporting them via the crash reporter. This functionality relies on the fact that Windows will refuse to overcommit memory and that memory allocation requests will fail in an OOM scenario. By contrast, the Linux kernel permits overcommitting memory by default and will invoke the [Out Of Memory (OOM) killer](https://www.kernel.org/doc/gorman/html/understand/understand016.html) to free up memory when an OOM condition is detected. This prevents Unreal Engine's OOM handling logic from triggering correctly under Wine. Although it is possible to [configure the Linux kernel to disable overcommit](https://www.kernel.org/doc/Documentation/vm/overcommit-accounting), this setting applies at a system-wide level and cannot be controlled for individual Linux containers. Disabling overcommit at a system level may result in erratic or unexpected behaviour when running native Linux applications that were not designed to gracefully handle memory allocation failures. This patch adds support to Wine for preventing memory overcommit by Windows applications and reporting memory allocation failures in the same manner as Windows itself. This ensures Unreal Engine's OOM handling logic is triggered correctly, whilst avoiding adverse side effects for native Linux applications running on the same system.
 
 The code in this patchset depends on two shared libraries that are stored outside of the Wine source tree: the [memory shim](../memory-shim/) (which is injected into all processes to intercept memory allocation functions) and [libmemory-patches](../libmemory-patches/) (which provides shared code directly used by the code in the patchset).
+
+
+## Expose external memory and semaphore fd extensions in winevulkan
+
+**Upstream merge request:** Not yet submitted
+
+**Status:** Pending submission upstream
+
+**Patch file:** [winevulkan-expose-external-fd.patch](../patches/winevulkan-expose-external-fd.patch)
+
+This patch removes `VK_KHR_external_memory_fd` and `VK_KHR_external_semaphore_fd` from `UNEXPOSED_EXTENSIONS` in `dlls/winevulkan/make_vulkan`, so that PE Vulkan clients such as DXVK and VKD3D-Proton can export Vulkan memory as a host file descriptor. This improves CUDA interop with compiled Windows applications, which lets applications such as Unreal Engine applications using Pixel Streaming use hardware video encoding under Wine, and later hardware decoding.
 
 
 # Historical Wine Patches
